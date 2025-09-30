@@ -289,7 +289,7 @@ function parseTimeToHours(s) {
 }
 
 function currency(n) {
-  return Number(Math.round(n * 100) / 100).toFixed(2);
+  return '₹' + Number(Math.round(n * 100) / 100).toFixed(2);
 }
 
 function calculate() {
@@ -396,4 +396,5 @@ calculate();
 
 </body>
 </html>
+
 
