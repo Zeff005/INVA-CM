@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INVA Receipt Generator</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 18px;
+    background: #f3f4f6;
+    color: #0f172a;
+  }
+  .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 18px;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(2,6,23,0.08);
+  }
+  h1 {
+    font-size: 18px;
+    margin: 0 0 6px;
+  }
+  .muted {
+    color: #475569;
+    font-size: 13px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  input, select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #e6e9ef;
+    box-sizing: border-box;
+  }
+  textarea {
+    width: 100%;
+    min-height: 64px;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #e6e9ef;
+    box-sizing: border-box;
+  }
+  .controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  button {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+    background: #0ea5a4;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  button:hover {
+    background: #0d8f8e;
+  }
+  .receipt {
+    margin-top: 18px;
+    padding: 14px;
+    border: 1px solid #e6e9ef;
+    border-radius: 8px;
+    background: #ffffff;
+  }
+  .rhead {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  td, th {
+    padding: 8px;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+  }
+  .right {
+    text-align: right;
+  }
+  .small {
+    font-size: 13px;
+    color: #475569;
+  }
+
+  @media print {
+    body { 
+      background: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+    .wrap { 
+      box-shadow: none;
+      padding: 0;
+      max-width: 100%;
+    }
+    .grid {
+      display: block;
+    }
+    .grid > div:first-child {
+      display: none;
+    }
+    .receipt {
+      border: none;
+      margin: 0;
+      padding: 0;
+    }
+    button {
+      display: none;
+    }
+    h1, .muted {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>INVA Receipt Generator</h1>
+  <div class="muted">Enter flight details on the left, preview receipt on the right. All rates and multipliers are pre-loaded.</div>
+
+  <div class="grid">
+    <div>
+      <label>Pilot Name
+        <input type="text" id="pilot" placeholder="Rahul">
+      </label>
+
+      <label>Rank
+        <select id="rank">
+          <option value="">-- choose rank --</option>
+          <option value="Cadet / Trainee" data-rate="1333">Cadet / Trainee — ₹1,333</option>
+          <option value="Junior FO" data-rate="1800">Junior FO — ₹1,800</option>
+          <option value="First Officer" data-rate="2600">First Officer — ₹2,600</option>
+          <option value="Senior FO" data-rate="3100">Senior FO — ₹3,100</option>
+          <option value="Captain" data-rate="3500">Captain — ₹3,500</option>
+          <option value="Senior Captain" data-rate="3800">Senior Captain — ₹3,800</option>
+          <option value="Chief Pilot" data-rate="4000">Chief Pilot — ₹4,000</option>
+        </select>
+      </label>
+
+      <label>INVA Callsign (3 digits)
+        <input type="text" id="callsign" placeholder="e.g. 123" maxlength="3" pattern="\d{3}">
+      </label>
+
+      <label>Flight Number
+        <input type="text" id="flightnum" placeholder="e.g. IX998">
+      </label>
+
+      <label>Departure ICAO
+        <input type="text" id="depicao" placeholder="e.g. VIDP" maxlength="4">
+      </label>
+
+      <label>Arrival ICAO
+        <input type="text" id="arricao" placeholder="e.g. VABB" maxlength="4">
+      </label>
+
+      <label>Aircraft
+        <select id="aircraft">
+          <option value="">-- choose aircraft --</option>
+          <option value="A319" data-mult="1.00">A319 — ×1.00</option>
+          <option value="A320" data-mult="1.00">A320 — ×1.00</option>
+          <option value="B737" data-mult="1.00">B737 — ×1.00</option>
+          <option value="B738" data-mult="1.00">B738 — ×1.00</option>
+          <option value="B737 MAX" data-mult="1.05">B737 MAX — ×1.05</option>
+          <option value="A321" data-mult="1.05">A321 — ×1.05</option>
+          <option value="B788" data-mult="1.15">B788 — ×1.15</option>
+          <option value="B789" data-mult="1.15">B789 — ×1.15</option>
+          <option value="B77W" data-mult="1.25">B77W — ×1.25</option>
+          <option value="B77L" data-mult="1.25">B77L — ×1.25</option>
+          <option value="B744" data-mult="1.50">B744 — ×1.50</option>
+          <option value="A350" data-mult="1.35">A350 — ×1.35</option>
+        </select>
+      </label>
+
+      <label>Flight Time (hh:mm or decimal hours)
+        <input type="text" id="ftime" placeholder="e.g. 03:34 or 3.5667">
+      </label>
+
+      <label>Additional Line Items (one per line: description|amount)
+        <textarea id="lines">Flight allowance|00.00
+Fuel surcharge|0.00</textarea>
+      </label>
+
+      <div class="controls">
+        <button type="button" id="calcBtn">Calculate</button>
+        <button type="button" id="printBtn">Print / Save PDF</button>
+      </div>
+
+      <div class="small" style="margin-top:8px">Tip: choose Rank/Aircraft from dropdown to auto-fill Base Rate & Multiplier.</div>
+    </div>
+
+    <div>
+      <div class="receipt" id="receipt">
+        <div class="rhead">
+          <div>
+            <h2 style="margin:0">INVA RECEIPT</h2>
+            <div class="small">Receipt #: <span id="rno">VA-0001</span></div>
+            <div class="small">Date: <span id="rdate"></span></div>
+          </div>
+          <div class="small">INVA — Career Mode</div>
+        </div>
+
+        <table>
+          <tbody>
+            <tr><td>Pilot</td><td id="rpilot">-</td></tr>
+            <tr><td>Rank</td><td id="rrank">-</td></tr>
+            <tr><td>INVA Callsign</td><td id="rcallsign">-</td></tr>
+            <tr><td>Flight Number</td><td id="rflightnum">-</td></tr>
+            <tr><td>Departure ICAO</td><td id="rdepicao">-</td></tr>
+            <tr><td>Arrival ICAO</td><td id="rarricao">-</td></tr>
+            <tr><td>Aircraft</td><td id="rair">-</td></tr>
+            <tr><td>Flight Time (hh:mm)</td><td id="rftime">-</td></tr>
+            <tr><td>Base Rate (₹)</td><td id="rbase">0.00</td></tr>
+            <tr><td>Multiplier</td><td id="rmult">1.00</td></tr>
+          </tbody>
+        </table>
+
+        <h4 style="margin-top:12px;margin-bottom:6px">Line Items</h4>
+        <table id="itemsTable">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th class="right">Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot>
+            <tr><td class="right"><strong>Subtotal</strong></td><td class="right" id="subt">0.00</td></tr>
+            <tr><td class="right">Taxes / Fees</td><td class="right" id="taxes">0.00</td></tr>
+            <tr><td class="right"><strong>Total (lines)</strong></td><td class="right" id="linetotal">0.00</td></tr>
+          </tfoot>
+        </table>
+
+        <table style="margin-top:8px">
+          <tbody>
+            <tr><td><strong>Earnings (Flight)</strong></td><td class="right" id="rearn">0.00</td></tr>
+            <tr><td><strong>Grand Total (Earnings + Extras)</strong></td><td class="right" id="grand">0.00</td></tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top:12px" class="small">Notes: Generated for INVA in-game use only. Do not use for fraudulent real-world claims.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Helper functions
+function asNumber(x) {
+  var str = String(x).replace(/[^0-9.-]/g, '');
+  var n = Number(str);
+  return isNaN(n) ? 0 : n;
+}
+
+function parseTimeToHours(s) {
+  if (!s) return 0;
+  s = String(s).trim();
+  
+  if (s.includes(':')) {
+    var parts = s.split(':').map(function(p) { return Number(p); });
+    var h = parts[0] || 0;
+    var m = parts[1] || 0;
+    var sec = parts[2] || 0;
+    return h + (m / 60) + (sec / 3600);
+  }
+  
+  var n = Number(s);
+  return isNaN(n) ? 0 : n;
+}
+
+function currency(n) {
+  return Number(Math.round(n * 100) / 100).toFixed(2);
+}
+
+function calculate() {
+  // Get values
+  var pilot = document.getElementById('pilot').value || '';
+  var rankEl = document.getElementById('rank');
+  var rank = rankEl.value;
+  var selectedRank = rankEl.options[rankEl.selectedIndex];
+  var baseRate = selectedRank.getAttribute('data-rate') ? asNumber(selectedRank.getAttribute('data-rate')) : 0;
+  
+  var aircraftEl = document.getElementById('aircraft');
+  var aircraft = aircraftEl.value;
+  var selectedAircraft = aircraftEl.options[aircraftEl.selectedIndex];
+  var mult = selectedAircraft.getAttribute('data-mult') ? Number(selectedAircraft.getAttribute('data-mult')) : 1;
+  
+  var ftime = document.getElementById('ftime').value;
+  var hrs = parseTimeToHours(ftime);
+
+  // New fields
+  var callsign = document.getElementById('callsign').value || '';
+  var flightnum = document.getElementById('flightnum').value || '';
+  var depicao = document.getElementById('depicao').value || '';
+  var arricao = document.getElementById('arricao').value || '';
+
+  // Parse line items
+  var linesText = document.getElementById('lines').value.trim();
+  var lines = [];
+  if (linesText) {
+    var lineArray = linesText.split('\n');
+    for (var i = 0; i < lineArray.length; i++) {
+      var parts = lineArray[i].split('|');
+      lines.push({
+        desc: parts[0].trim(),
+        amt: asNumber(parts[1] || 0)
+      });
+    }
+  }
+  
+  var subtotal = 0;
+  for (var i = 0; i < lines.length; i++) {
+    subtotal += lines[i].amt;
+  }
+  
+  var taxes = Math.round(subtotal * 0.00 * 100) / 100;
+  var linetotal = subtotal + taxes;
+  var earnings = Math.round(hrs * baseRate * mult * 100) / 100;
+  var grand = Math.round((earnings + linetotal) * 100) / 100;
+
+  // Update receipt
+  var today = new Date();
+  var dateStr = today.getFullYear() + '-' + 
+                String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(today.getDate()).padStart(2, '0');
+  
+  document.getElementById('rdate').textContent = dateStr;
+  document.getElementById('rno').textContent = 'VA-' + String(Math.floor(Math.random() * 9000) + 1000);
+  document.getElementById('rpilot').textContent = pilot || '-';
+  document.getElementById('rrank').textContent = rank || '-';
+  document.getElementById('rcallsign').textContent = callsign ? 'INVA' + callsign : '-';
+  document.getElementById('rflightnum').textContent = flightnum || '-';
+  document.getElementById('rdepicao').textContent = depicao || '-';
+  document.getElementById('rarricao').textContent = arricao || '-';
+  document.getElementById('rair').textContent = aircraft || '-';
+  document.getElementById('rftime').textContent = ftime || '-';
+  document.getElementById('rbase').textContent = currency(baseRate);
+  document.getElementById('rmult').textContent = mult.toFixed(2);
+
+  // Update line items
+  var tbody = document.querySelector('#itemsTable tbody');
+  tbody.innerHTML = '';
+  for (var i = 0; i < lines.length; i++) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + lines[i].desc + '</td><td class="right">' + currency(lines[i].amt) + '</td>';
+    tbody.appendChild(tr);
+  }
+  
+  document.getElementById('subt').textContent = currency(subtotal);
+  document.getElementById('taxes').textContent = currency(taxes);
+  document.getElementById('linetotal').textContent = currency(linetotal);
+  document.getElementById('rearn').textContent = currency(earnings);
+  document.getElementById('grand').textContent = currency(grand);
+}
+
+// Event listeners
+document.getElementById('calcBtn').addEventListener('click', calculate);
+document.getElementById('printBtn').addEventListener('click', function() {
+  calculate();
+  setTimeout(function() {
+    window.print();
+  }, 150);
+});
+
+// Live updates (added callsign)
+var fieldIds = ['pilot', 'rank', 'aircraft', 'ftime', 'lines', 'flightnum', 'depicao', 'arricao', 'callsign'];
+for (var i = 0; i < fieldIds.length; i++) {
+  var el = document.getElementById(fieldIds[i]);
+  el.addEventListener('change', calculate);
+  el.addEventListener('input', calculate);
+}
+
+// Initial calculation
+calculate();
+</script>
+
+</body>
+</html>
