@@ -255,6 +255,8 @@ Fuel surcharge|0.00</textarea>
           <tbody>
             <tr><td><strong>Earnings (Flight)</strong></td><td class="right" id="rearn">0.00</td></tr>
             <tr><td><strong>Grand Total (Earnings + Extras)</strong></td><td class="right" id="grand">0.00</td></tr>
+            <!-- NEW USD ROW -->
+            <tr><td><strong>Estimated Earnings (USD)</strong></td><td class="right" id="rusd">$0.00</td></tr>
           </tbody>
         </table>
 
@@ -371,6 +373,18 @@ function calculate() {
   document.getElementById('linetotal').textContent = currency(linetotal);
   document.getElementById('rearn').textContent = currency(earnings);
   document.getElementById('grand').textContent = currency(grand);
+
+  // ✅ Fetch live INR to USD rate and update
+  fetch("https://api.exchangerate.host/latest?base=INR&symbols=USD")
+    .then(response => response.json())
+    .then(data => {
+      var rate = data.rates.USD || 0;
+      var usd = rate ? (grand * rate) : 0;
+      document.getElementById('rusd').textContent = '$' + usd.toFixed(2);
+    })
+    .catch(() => {
+      document.getElementById('rusd').textContent = '$0.00';
+    });
 }
 
 // Event listeners
@@ -382,7 +396,7 @@ document.getElementById('printBtn').addEventListener('click', function() {
   }, 150);
 });
 
-// Live updates (added callsign)
+// Live updates
 var fieldIds = ['pilot', 'rank', 'aircraft', 'ftime', 'lines', 'flightnum', 'depicao', 'arricao', 'callsign'];
 for (var i = 0; i < fieldIds.length; i++) {
   var el = document.getElementById(fieldIds[i]);
@@ -390,11 +404,18 @@ for (var i = 0; i < fieldIds.length; i++) {
   el.addEventListener('input', calculate);
 }
 
+// Auto-uppercase ICAO codes
+document.getElementById('depicao').addEventListener('input', function() {
+  this.value = this.value.toUpperCase();
+});
+
+document.getElementById('arricao').addEventListener('input', function() {
+  this.value = this.value.toUpperCase();
+});
+
 // Initial calculation
 calculate();
 </script>
 
 </body>
 </html>
-
-
