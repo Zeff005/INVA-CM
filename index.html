@@ -255,7 +255,6 @@ Fuel surcharge|0.00</textarea>
           <tbody>
             <tr><td><strong>Earnings (Flight)</strong></td><td class="right" id="rearn">0.00</td></tr>
             <tr><td><strong>Grand Total (Earnings + Extras)</strong></td><td class="right" id="grand">0.00</td></tr>
-            <!-- NEW USD ROW -->
             <tr><td><strong>Estimated Earnings (USD)</strong></td><td class="right" id="rusd">$0.00</td></tr>
           </tbody>
         </table>
@@ -374,16 +373,16 @@ function calculate() {
   document.getElementById('rearn').textContent = currency(earnings);
   document.getElementById('grand').textContent = currency(grand);
 
-  // ✅ Fetch live INR to USD rate and update
-  fetch("https://api.exchangerate.host/latest?base=INR&symbols=USD")
-    .then(response => response.json())
+  // ✅ Fetch live INR→USD conversion (Frankfurter API)
+  fetch("https://api.frankfurter.app/latest?from=INR&to=USD")
+    .then(res => res.json())
     .then(data => {
       var rate = data.rates.USD || 0;
       var usd = rate ? (grand * rate) : 0;
       document.getElementById('rusd').textContent = '$' + usd.toFixed(2);
     })
     .catch(() => {
-      document.getElementById('rusd').textContent = '$0.00';
+      document.getElementById('rusd').textContent = '$0.00 (conversion unavailable)';
     });
 }
 
@@ -396,7 +395,7 @@ document.getElementById('printBtn').addEventListener('click', function() {
   }, 150);
 });
 
-// Live updates
+// Live updates (added callsign)
 var fieldIds = ['pilot', 'rank', 'aircraft', 'ftime', 'lines', 'flightnum', 'depicao', 'arricao', 'callsign'];
 for (var i = 0; i < fieldIds.length; i++) {
   var el = document.getElementById(fieldIds[i]);
